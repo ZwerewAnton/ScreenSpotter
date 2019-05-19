@@ -5,6 +5,11 @@ VisualStudioVersion = 15.0.28307.572
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScreenSpotter", "ScreenSpotter\ScreenSpotter.csproj", "{B08F9C85-D6C6-4891-8F15-EA0482B49737}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{82CF8814-9776-45A7-AFE5-C59F5D3F97FA}"
+	ProjectSection(SolutionItems) = preProject
+		Hello Anton.html = Hello Anton.html
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
