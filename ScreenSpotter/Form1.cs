@@ -51,6 +51,7 @@ namespace ScreenSpotter
             timer1.Interval = 6000;
             timer1.Enabled = true;
             timer1.Start();
+        
         }
 
         private void Database()
