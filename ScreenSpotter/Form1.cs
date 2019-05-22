@@ -109,7 +109,7 @@ namespace ScreenSpotter
                 {
                     Directory.CreateDirectory(dir);
                 }
-
+                 
                 using (WebClient client = new WebClient())
                 {
                    client.DownloadFileAsync(new Uri(row["Url"].ToString()), dir + @"\" + DateTime.Now.ToString("MM.dd.hh.mm.ss") + @".png");
