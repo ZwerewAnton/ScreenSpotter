@@ -18,7 +18,6 @@ namespace ScreenSpotter
         string projectDirectory = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
         DataTable dt = new DataTable();
         bool timeriswork = true;
-        
 
         public Form1()
         {
