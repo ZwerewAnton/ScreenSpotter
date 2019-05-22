@@ -17,7 +17,7 @@ namespace ScreenSpotter
     {
         string projectDirectory = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
         DataTable dt = new DataTable();
-        bool timeriswork = false;
+        bool timeriswork = true;
         
 
         public Form1()
@@ -47,11 +47,12 @@ namespace ScreenSpotter
         {
             Database();
             DownloadImages();
-            button1.Text = "Таймер остановлен!";
-            button1.BackColor = Color.Red;
+            button1.Text = "Таймер запущен!";
+            button1.BackColor = Color.Green;
             timer1.Interval = 600000;
             timer1.Enabled = true;
             timer1.Tick += new EventHandler(timer1_Tick);
+            timer1.Start();
         }
 
         private void Database()
