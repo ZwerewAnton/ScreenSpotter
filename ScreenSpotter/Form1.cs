@@ -48,10 +48,9 @@ namespace ScreenSpotter
             DownloadImages();
             button1.Text = "Таймер запущен!";
             button1.BackColor = Color.Green;
-            timer1.Interval = 6000;
+            timer1.Interval = 600000;
             timer1.Enabled = true;
             timer1.Start();
-        
         }
 
         private void Database()
