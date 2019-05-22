@@ -112,7 +112,7 @@ namespace ScreenSpotter
                  
                 using (WebClient client = new WebClient())
                 {
-                   client.DownloadFileAsync(new Uri(row["Url"].ToString()), dir + @"\" + DateTime.Now.ToString("MM.dd.hh.mm.ss") + @".png");
+                   client.DownloadFileAsync(new Uri(row["Url"].ToString()), dir + @"\" + DateTime.Now.ToString("MM.dd.HH.mm.ss") + @".png");
                 }
                 if (i == dt.Rows.Count)
                 {
