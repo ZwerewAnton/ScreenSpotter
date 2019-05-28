@@ -38,7 +38,7 @@
             // 
             this.button1.Location = new System.Drawing.Point(12, 235);
             this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(339, 46);
+            this.button1.Size = new System.Drawing.Size(776, 73);
             this.button1.TabIndex = 0;
             this.button1.Text = "Таймер";
             this.button1.UseVisualStyleBackColor = true;
@@ -48,7 +48,7 @@
             // 
             this.richTextBox1.Location = new System.Drawing.Point(12, 12);
             this.richTextBox1.Name = "richTextBox1";
-            this.richTextBox1.Size = new System.Drawing.Size(339, 217);
+            this.richTextBox1.Size = new System.Drawing.Size(776, 217);
             this.richTextBox1.TabIndex = 2;
             this.richTextBox1.Text = "";
             // 
@@ -60,7 +60,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(363, 289);
+            this.ClientSize = new System.Drawing.Size(800, 316);
             this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.button1);
             this.Name = "Form1";
