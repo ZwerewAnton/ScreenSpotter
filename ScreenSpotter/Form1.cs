@@ -28,10 +28,8 @@ namespace ScreenSpotter
         {
             if (!timeriswork)
             {
-                timer1.Start();
-                button1.Text = "Таймер работает!";
-                button1.BackColor = Color.Green;
                 timeriswork = true;
+                Timer();
             }
             else
             {
@@ -41,16 +39,21 @@ namespace ScreenSpotter
                 timeriswork = false;
             }
         }
-                                  
-        private void Form1_Load(object sender, EventArgs e)
+
+        private void Timer()
         {
-            Database();
-            DownloadImages();
             button1.Text = "Таймер запущен!";
             button1.BackColor = Color.Green;
             timer1.Interval = 600000;
             timer1.Enabled = true;
             timer1.Start();
+            DownloadImages();
+        }
+                                  
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            Database();
+            Timer();           
         }
 
         private void Database()
