@@ -11,6 +11,7 @@ using System.IO;
 using System.Net;
 using System.Data.SQLite;
 using System.Runtime.InteropServices;
+using NLog;
 
 namespace ScreenSpotter
 {
@@ -19,7 +20,7 @@ namespace ScreenSpotter
     {
         Class1 cl = new Class1();
         string projectDirectory = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
-        
+        Logger logger = LogManager.GetCurrentClassLogger();
         DataTable dt = new DataTable();
         bool timeriswork = true;
         Image imgForPB;
@@ -168,12 +169,13 @@ namespace ScreenSpotter
                     if(squareDist >= 1500)
                     {
                         carOn++;
+                        logger.Trace("Машина найдена в квадрате с координатами: x = " + a.ToString() + ", y = " + b.ToString());
                     }
                     quad[squareCount] = squareDist;
 
 
-                    richTextBox1.AppendText("\n" + squareCount.ToString());
-                    richTextBox1.AppendText("-   "+squareDist.ToString());
+                    //richTextBox1.AppendText("\n" + squareCount.ToString());
+                   // richTextBox1.AppendText("-   "+squareDist.ToString());
                     
 
 
@@ -186,6 +188,7 @@ namespace ScreenSpotter
             {
                 carCount++;
                 richTextBox1.AppendText("\nМашина замечена в " + carOn.ToString() + " квадратах");
+                logger.Trace("Машина замечена в " + carOn.ToString() + " квадратах");
             }
 
             label1.Text = carCount.ToString();
@@ -274,8 +277,9 @@ namespace ScreenSpotter
                                     }
                                     img.Save(dir + @"\" + DateTime.Now.ToString("MM.dd.HH.mm.ss") + @".png");
 
+                                    logger.Trace("Изображение сохранено по адресу" + dir + @"\" + DateTime.Now.ToString("MM.dd.HH.mm.ss") + @".png");
 
-                                    
+
                                     //ImageProcessing(img);
                                     richTextBox1.AppendText("\n" + "Все фотографии загружены. Время:" + DateTime.Now.ToLongTimeString());
                                 }
@@ -316,5 +320,7 @@ namespace ScreenSpotter
             SelectionDirectory();
 
         }
+
+
     }
 }
