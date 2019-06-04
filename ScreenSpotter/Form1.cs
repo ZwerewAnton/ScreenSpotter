@@ -14,12 +14,17 @@ using System.Runtime.InteropServices;
 
 namespace ScreenSpotter
 {
+
     public partial class Form1 : Form
     {
         Class1 cl = new Class1();
         string projectDirectory = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
+        
         DataTable dt = new DataTable();
         bool timeriswork = true;
+        Image imgForPB;
+        int carCount = 0;
+
         public Form1()
         {
             InitializeComponent();
@@ -44,15 +49,34 @@ namespace ScreenSpotter
             }
         }
 
+        private void SelectionDirectory()
+        {
+            FolderBrowserDialog DirDialog = new FolderBrowserDialog();
+            DirDialog.Description = "Выбор директории";
+            DirDialog.SelectedPath = @"C:\";
+
+            if (DirDialog.ShowDialog() == DialogResult.OK)
+            {
+                Properties.Settings.Default.imageDirectory = DirDialog.SelectedPath;
+                Properties.Settings.Default.Save();
+                Properties.Settings.Default.Upgrade();
+            }
+        }
+
+
         private void Form1_Load(object sender, EventArgs e)
         {
+            if (Properties.Settings.Default.imageDirectory == "" || !Directory.Exists(Properties.Settings.Default.imageDirectory))
+            {
+                SelectionDirectory();
+            }
             Database();
-            //DownloadImages();
+            DownloadImages();
             button1.Text = "Таймер запущен!";
             button1.BackColor = Color.Green;
             timer1.Interval = 600000;
-            //timer1.Enabled = true;
-            //timer1.Start();
+            timer1.Enabled = true;
+            timer1.Start();
         }
 
         private void Database()
@@ -63,7 +87,7 @@ namespace ScreenSpotter
                 SQLiteCommand SelectCommand = new SQLiteCommand
                 {
                     Connection = Connect,
-                    CommandText = @"SELECT Subjects.Name as Subject, Regions.Name as Region, Cameras.Name as Name, Url, X, Y, Width, Height FROM Cameras, Subjects, Regions
+                    CommandText = @"SELECT Cameras.Id as Id, Subjects.Name as Subject, Regions.Name as Region, Cameras.Name as Name, Url, X, Y, Width, Height FROM Cameras, Subjects, Regions
                                     WHERE Cameras.Region = Regions.Id And Regions.Subjects = Subjects.Id"
                 };
                 SQLiteDataReader sqlReader;
@@ -89,79 +113,193 @@ namespace ScreenSpotter
                 Connect.Close();
             }
         }
+        int[] quad = new int[91];
+        
+
+        public void ImageProcessing(Image img, Image imgSource)
+        {
+            Bitmap bmp = new Bitmap(img);
+            Bitmap bmpSource = new Bitmap(imgSource);
+
+            Bitmap bmpForPB = new Bitmap(img);
+
+            int best = 0, bestTemp = 0, rsum = 0;
+
+            int squareCount = 0, carOn = 0;
+            for (int a = 1; a < 508; a = a + 39)
+            {
+                for (int b = 1; b < 274; b = b + 39)
+                {
+                    int squareDist = 0;
+                    best = 0;
+                    for (int i = a; i < a + 39; i = i + 7)
+                    {
+                        for (int j = b; j < b + 39; j = j + 7)
+                        {
+                            if (i == a || j == b)
+                            {
+                                bmpForPB.SetPixel(i, j, Color.Red);
+                            }
+                            for (int g = i; g <= i + 6; g = g + 3)
+                            {
+                                for (int f = j; f <= j + 6; f = f + 3)
+                                {
+                                    int xbest = 0, ybest = 0;
+                                    if ((-278 * g + 133 * f + 2224 <= 0) && (-260 * g + 450 * f + 20800 >= 0))
+                                    {
+                                        bestTemp = Math.Abs(bmpSource.GetPixel(i + 3, j + 3).R - bmp.GetPixel(g, f).R) +
+                                                        Math.Abs(bmpSource.GetPixel(i + 3, j + 3).G - bmp.GetPixel(g, f).G) +
+                                                        Math.Abs(bmpSource.GetPixel(i + 3, j + 3).B - bmp.GetPixel(g, f).B);
+                                        if ((bestTemp <= best) || ((g == i) && (f == j)))
+                                        {
+                                            xbest = g;
+                                            ybest = f;
+
+                                            best = bestTemp;
+                                            rsum = rsum + best;
+                                        }
+                                    }
+                                    bmpForPB.SetPixel(xbest, ybest, Color.Yellow);
+                                }
+                            }
+                            squareDist = squareDist + best;
+                        }
+                    }
+                    if(squareDist >= 1500)
+                    {
+                        carOn++;
+                    }
+                    quad[squareCount] = squareDist;
+
+
+                    richTextBox1.AppendText("\n" + squareCount.ToString());
+                    richTextBox1.AppendText("-   "+squareDist.ToString());
+                    
+
+
+                    squareCount++;
+                }
+            }
+
+
+            if (carOn >= 1)
+            {
+                carCount++;
+                richTextBox1.AppendText("\nМашина замечена в " + carOn.ToString() + " квадратах");
+            }
+
+            label1.Text = carCount.ToString();
+
+            pictureBox1.Width = bmpForPB.Width;
+            pictureBox1.Height = bmpForPB.Height;
+            pictureBox1.Image = bmpForPB;
+        }
+
 
         private void DownloadImages()
         {
+            if (Properties.Settings.Default.imageDirectory == "")
+            {
+                richTextBox1.AppendText("\nНе задана директория для сохранения изображений!");
+                return;
+            }
+                
+            if (!Directory.Exists(Properties.Settings.Default.imageDirectory))
+            {
+                richTextBox1.AppendText("\nДиректория для изображений задана неверно!");
+                return;
+            }
+                
+
             int i = 1;
             foreach (DataRow row in dt.Rows)
             {
-                string dir = projectDirectory + @"\Data\" + row["Subject"].ToString();
-                if (!Directory.Exists(dir))
+                string id = row["Id"].ToString();
+                int id1 = Convert.ToInt32(id);
+                //richTextBox1.AppendText(id1.ToString());
+                if (id1 == 157)
                 {
-                    Directory.CreateDirectory(dir);
-                }
-                dir = projectDirectory + @"\Data\" + row["Subject"].ToString() + @"\" + row["Region"].ToString();
-                if (!Directory.Exists(dir))
-                {
-                    Directory.CreateDirectory(dir);
-                }
-                dir = projectDirectory + @"\Data\" + row["Subject"].ToString() + @"\" + row["Region"].ToString() + @"\" + row["Name"].ToString();
-                if (!Directory.Exists(dir))
-                {
-                    Directory.CreateDirectory(dir);
-                }
+                    string dir = Properties.Settings.Default.imageDirectory + @"\Data\" + row["Subject"].ToString();
+                    if (!Directory.Exists(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
+                    dir = Properties.Settings.Default.imageDirectory + @"\Data\" + row["Subject"].ToString() + @"\" + row["Region"].ToString();
+                    if (!Directory.Exists(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
+                    dir = Properties.Settings.Default.imageDirectory + @"\Data\" + row["Subject"].ToString() + @"\" + row["Region"].ToString() + @"\" + row["Name"].ToString();
+                    if (!Directory.Exists(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
 
-                //using (WebClient client = new WebClient())
-                //{
-                //    Image img;
-                //    string imagePath = dir + @"\" + DateTime.Now.ToString("MM.dd.HH.mm.ss") + @".png";
-                //    client.DownloadFile(new Uri(row["Url"].ToString()), imagePath);
-                //    try
-                //    {
-                //        img = Image.FromFile(imagePath);
-                //    }
-                //    catch (Exception)
-                //    {
-                //        richTextBox1.AppendText("");
-                //        throw;
-                //    }
-                    
-                //    int[] rectCoor = { 171, 50, 530, 306 };
-                //    int[] rectCoor2 = { 20, 20, 50, 50 };
-                //    img = Class1.cropImage(img, rectCoor2);
-                //    img.Save(imagePath + ".png");
-                //}
-
-                using (WebClient webClient = new WebClient())
-                {
-                    using (Stream stream = webClient.OpenRead(row["Url"].ToString()))
+                    using (WebClient webClient = new WebClient())
                     {
                         try
                         {
-                            Image img = Image.FromStream(stream);
-                            string x = row["X"].ToString();
-                            string y = row["Y"].ToString();
-                            string width = row["Width"].ToString();
-                            string height = row["Height"].ToString();
-                            int[] rectCoor = { Convert.ToInt32(x), Convert.ToInt32(y), Convert.ToInt32(width), Convert.ToInt32(height) };
-                            img = Class1.cropImage(img, rectCoor);
-                            img.Save(dir + @"\" + DateTime.Now.ToString("MM.dd.HH.mm.ss") + @".png");
+                            using (Stream stream = webClient.OpenRead(row["Url"].ToString()))
+                            {
+                                try
+                                {
+                                    Image img = Image.FromStream(stream);
+                                    string x = row["X"].ToString();
+                                    string y = row["Y"].ToString();
+                                    string width = row["Width"].ToString();
+                                    string height = row["Height"].ToString();
+                                    int[] rectCoor = { Convert.ToInt32(x), Convert.ToInt32(y), Convert.ToInt32(width), Convert.ToInt32(height) };
+                                    img = Class1.cropImage(img, rectCoor);
+                                    imgForPB = img;
+                                    
+                                    if(DateTime.Now.TimeOfDay > new TimeSpan(08, 00, 00) && DateTime.Now.TimeOfDay < new TimeSpan(15, 00, 00))
+                                    {
+                                        ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\08-15.png"));
+                                    }
+                                    else if(DateTime.Now.TimeOfDay > new TimeSpan(15, 00, 00) && DateTime.Now.TimeOfDay < new TimeSpan(20, 00, 00))
+                                    {
+                                        ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\15-20.png"));
+                                    }
+                                    else if (DateTime.Now.TimeOfDay > new TimeSpan(20, 00, 00) && DateTime.Now.TimeOfDay < new TimeSpan(23, 00, 00))
+                                    {
+                                        ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\20-23.png"));
+                                    }
+                                    else if (DateTime.Now.TimeOfDay > new TimeSpan(22, 00, 00) && DateTime.Now.TimeOfDay < new TimeSpan(05, 00, 00))
+                                    {
+                                        ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\23-05.png"));
+                                    }
+                                    else if (DateTime.Now.TimeOfDay > new TimeSpan(05, 00, 00) && DateTime.Now.TimeOfDay < new TimeSpan(08, 00, 00))
+                                    {
+                                        ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\08-15.png"));
+                                    }
+                                    img.Save(dir + @"\" + DateTime.Now.ToString("MM.dd.HH.mm.ss") + @".png");
+
+
+                                    
+                                    //ImageProcessing(img);
+                                    richTextBox1.AppendText("\n" + "Все фотографии загружены. Время:" + DateTime.Now.ToLongTimeString());
+                                }
+                                catch (ArgumentException)
+                                {
+                                    
+                                    richTextBox1.AppendText("\nИзображение по адресу:" + row["Url"].ToString() + " недоступно");
+                                }
+                            }
                         }
-                        catch (ArgumentException)
+                        catch (WebException)
                         {
-                            richTextBox1.AppendText("\nИзображение по адресу:" + row["Url"].ToString() + " недоступно");
+                            richTextBox1.AppendText("\nПроблема доступа к сети. Время:" + DateTime.Now.ToString());
                         }
                     }
 
-                }
-
-                if (i == dt.Rows.Count)
-                {
-                    richTextBox1.AppendText("\n" + "Все фотографии загружены. Время:" + DateTime.Now.ToLongTimeString());
-                }
-                else
-                {
-                    i++;
+                    if (i == dt.Rows.Count)
+                    {
+                        richTextBox1.AppendText("\n" + "Все фотографии загружены. Время:" + DateTime.Now.ToLongTimeString());
+                    }
+                    else
+                    {
+                        i++;
+                    }
                 }
             }
         }
@@ -174,7 +312,9 @@ namespace ScreenSpotter
 
         private void button2_Click(object sender, EventArgs e)
         {
-            DownloadImages();
+            //   DownloadImages();
+            SelectionDirectory();
+
         }
     }
 }
