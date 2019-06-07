@@ -75,8 +75,8 @@ namespace ScreenSpotter
             }
 
             Database();
-           // imageSourceNew = Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\06.07.10.24.31.png");
-            //DownloadImages();
+            imageSourceNew = Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\06.07.15.10.00.png");
+            DownloadImages();
             button1.Text = "Таймер запущен!";
             button1.BackColor = Color.Green;
             timer1.Interval = 600000;
@@ -256,16 +256,15 @@ namespace ScreenSpotter
                             {
                                 try
                                 {
-                                    //img = Image.FromStream(stream);
+                                    img = Image.FromStream(stream);
                                     string x = row["X"].ToString();
                                     string y = row["Y"].ToString();
                                     string width = row["Width"].ToString();
                                     string height = row["Height"].ToString();
                                     int[] rectCoor = { Convert.ToInt32(x), Convert.ToInt32(y), Convert.ToInt32(width), Convert.ToInt32(height) };
-                                    //img = Class1.cropImage(img, rectCoor);
+                                    img = Class1.cropImage(img, rectCoor);
                                     imgForPB = img;
-                                    
-                                    if(DateTime.Now.TimeOfDay > new TimeSpan(08, 00, 00) && DateTime.Now.TimeOfDay <= new TimeSpan(15, 00, 00))
+                                    if (DateTime.Now.TimeOfDay > new TimeSpan(08, 00, 00) && DateTime.Now.TimeOfDay <= new TimeSpan(15, 00, 00))
                                     {
                                         ImageProcessing(img, imageSourceNew);
 
@@ -337,57 +336,57 @@ namespace ScreenSpotter
         {
             
             //SelectionDirectory();
-            switch (o)
-            {
-                case 0:
-                    imageSourceNew = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.10.37.png");
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.10.37.png");
-                    break;
-                case 1:
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.20.36.png");
-                    break;
-                case 2:
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.30.36.png");
-                    break;
-                case 3:
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.40.36.png");
-                    break;
-                case 4:
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.00.36.png");
-                    break;
-                //case 5:
-                //    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.10.36.png");
-                //    break;
-                case 6:
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.20.37.png");
-                    break;
-                case 7:
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.30.36.png");
-                    break;
-                case 8:
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.40.36.png");
-                    break;
-                case 9:
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.50.36.png");
-                    break;
-                case 10:
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.00.36.png");
-                    break;
-                case 11:
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.10.36.png");
-                    break;
-                //case 12:
-                //    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.30.36.png");
-                //    break;
-                case 13:
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.40.38.png");
-                    break;
-                case 14:
-                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.50.37.png");
-                    break;
-            }
-            DownloadImages();
-            o++;
+            //switch (o)
+            //{
+            //    case 0:
+            //        imageSourceNew = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.10.37.png");
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.10.37.png");
+            //        break;
+            //    case 1:
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.20.36.png");
+            //        break;
+            //    case 2:
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.30.36.png");
+            //        break;
+            //    case 3:
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.40.36.png");
+            //        break;
+            //    case 4:
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.00.36.png");
+            //        break;
+            //    //case 5:
+            //    //    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.10.36.png");
+            //    //    break;
+            //    case 6:
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.20.37.png");
+            //        break;
+            //    case 7:
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.30.36.png");
+            //        break;
+            //    case 8:
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.40.36.png");
+            //        break;
+            //    case 9:
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.50.36.png");
+            //        break;
+            //    case 10:
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.00.36.png");
+            //        break;
+            //    case 11:
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.10.36.png");
+            //        break;
+            //    //case 12:
+            //    //    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.30.36.png");
+            //    //    break;
+            //    case 13:
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.40.38.png");
+            //        break;
+            //    case 14:
+            //        img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.50.37.png");
+            //        break;
+            //}
+            //DownloadImages();
+            //o++;
                 
                 
 
