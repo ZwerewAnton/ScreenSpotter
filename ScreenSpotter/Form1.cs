@@ -23,8 +23,9 @@ namespace ScreenSpotter
         Logger logger = LogManager.GetCurrentClassLogger();
         DataTable dt = new DataTable();
         bool timeriswork = true;
-        Image imgForPB;
+        Image imgForPB, imageSourceNew;
         int carCount = 0;
+        Image img;
 
         public Form1()
         {
@@ -67,12 +68,15 @@ namespace ScreenSpotter
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            
             if (Properties.Settings.Default.imageDirectory == "" || !Directory.Exists(Properties.Settings.Default.imageDirectory))
             {
                 SelectionDirectory();
             }
+
             Database();
-            DownloadImages();
+           // imageSourceNew = Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\06.07.10.24.31.png");
+            //DownloadImages();
             button1.Text = "Таймер запущен!";
             button1.BackColor = Color.Green;
             timer1.Interval = 600000;
@@ -131,55 +135,57 @@ namespace ScreenSpotter
             {
                 for (int b = 1; b < 274; b = b + 39)
                 {
-                    int squareDist = 0;
-                    best = 0;
-                    for (int i = a; i < a + 39; i = i + 7)
+                    if ((-278 * a + 133 * b + 2224 <= 0) && (-260 * a + 450 * b + 20800 >= 0) ||
+                    (-278 * (a + 38) + 133 * b + 2224 <= 0) && (-260 * (a + 38) + 450 * b + 20800 >= 0) ||
+                    (-278 * a + 133 * (b + 38) + 2224 <= 0) && (-260 * a + 450 * (b + 38) + 20800 >= 0) ||
+                    (-278 * (a + 38) + 133 * (b + 38) + 2224 <= 0) && (-260 * (a + 38) + 450 * (b + 38) + 20800 >= 0))
                     {
-                        for (int j = b; j < b + 39; j = j + 7)
+                        int squareDist = 0;
+                        best = 0;
+                        for (int i = a; i < a + 39; i = i + 7)
                         {
-                            if (i == a || j == b)
+                            for (int j = b; j < b + 39; j = j + 7)
                             {
-                                bmpForPB.SetPixel(i, j, Color.Red);
-                            }
-                            for (int g = i; g <= i + 6; g = g + 3)
-                            {
-                                for (int f = j; f <= j + 6; f = f + 3)
+                                if (i == a || j == b)
                                 {
-                                    int xbest = 0, ybest = 0;
-                                    if ((-278 * g + 133 * f + 2224 <= 0) && (-260 * g + 450 * f + 20800 >= 0))
-                                    {
-                                        bestTemp = Math.Abs(bmpSource.GetPixel(i + 3, j + 3).R - bmp.GetPixel(g, f).R) +
-                                                        Math.Abs(bmpSource.GetPixel(i + 3, j + 3).G - bmp.GetPixel(g, f).G) +
-                                                        Math.Abs(bmpSource.GetPixel(i + 3, j + 3).B - bmp.GetPixel(g, f).B);
-                                        if ((bestTemp <= best) || ((g == i) && (f == j)))
-                                        {
-                                            xbest = g;
-                                            ybest = f;
-
-                                            best = bestTemp;
-                                            rsum = rsum + best;
-                                        }
-                                    }
-                                    bmpForPB.SetPixel(xbest, ybest, Color.Yellow);
+                                    bmpForPB.SetPixel(i, j, Color.Red);
                                 }
+                                for (int g = i; g <= i + 6; g = g + 3)
+                                {
+                                    for (int f = j; f <= j + 6; f = f + 3)
+                                    {
+                                        int xbest = 0, ybest = 0;
+                                        
+                                            bestTemp = Math.Abs(bmpSource.GetPixel(i + 3, j + 3).R - bmp.GetPixel(g, f).R) +
+                                                            Math.Abs(bmpSource.GetPixel(i + 3, j + 3).G - bmp.GetPixel(g, f).G) +
+                                                            Math.Abs(bmpSource.GetPixel(i + 3, j + 3).B - bmp.GetPixel(g, f).B);
+                                            if ((bestTemp <= best) || ((g == i) && (f == j)))
+                                            {
+                                                xbest = g;
+                                                ybest = f;
+
+                                                best = bestTemp;
+                                                rsum = rsum + best;
+                                            }
+                                        
+                                        bmpForPB.SetPixel(xbest, ybest, Color.Yellow);
+                                    }
+                                }
+                                squareDist = squareDist + best;
                             }
-                            squareDist = squareDist + best;
                         }
+                        if (squareDist >= 1500)
+                        {
+                            carOn++;
+                            logger.Trace("Машина найдена в квадрате с координатами: x = " + a.ToString() + ", y = " + b.ToString());
+                        }
+                        quad[squareCount] = squareDist;
+
+                        richTextBox1.AppendText("\n" + squareCount.ToString());
+                        richTextBox1.AppendText("-   " + squareDist.ToString());
+
+                        squareCount++;
                     }
-                    if(squareDist >= 1500)
-                    {
-                        carOn++;
-                        logger.Trace("Машина найдена в квадрате с координатами: x = " + a.ToString() + ", y = " + b.ToString());
-                    }
-                    quad[squareCount] = squareDist;
-
-
-                    //richTextBox1.AppendText("\n" + squareCount.ToString());
-                   // richTextBox1.AppendText("-   "+squareDist.ToString());
-                    
-
-
-                    squareCount++;
                 }
             }
 
@@ -189,6 +195,10 @@ namespace ScreenSpotter
                 carCount++;
                 richTextBox1.AppendText("\nМашина замечена в " + carOn.ToString() + " квадратах");
                 logger.Trace("Машина замечена в " + carOn.ToString() + " квадратах");
+            }
+            else
+            {
+                imageSourceNew = bmp;
             }
 
             label1.Text = carCount.ToString();
@@ -246,32 +256,41 @@ namespace ScreenSpotter
                             {
                                 try
                                 {
-                                    Image img = Image.FromStream(stream);
+                                    //img = Image.FromStream(stream);
                                     string x = row["X"].ToString();
                                     string y = row["Y"].ToString();
                                     string width = row["Width"].ToString();
                                     string height = row["Height"].ToString();
                                     int[] rectCoor = { Convert.ToInt32(x), Convert.ToInt32(y), Convert.ToInt32(width), Convert.ToInt32(height) };
-                                    img = Class1.cropImage(img, rectCoor);
+                                    //img = Class1.cropImage(img, rectCoor);
                                     imgForPB = img;
                                     
-                                    if(DateTime.Now.TimeOfDay > new TimeSpan(08, 00, 00) && DateTime.Now.TimeOfDay < new TimeSpan(15, 00, 00))
+                                    if(DateTime.Now.TimeOfDay > new TimeSpan(08, 00, 00) && DateTime.Now.TimeOfDay <= new TimeSpan(15, 00, 00))
                                     {
-                                        ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\08-15.png"));
+                                        ImageProcessing(img, imageSourceNew);
+
+
+                                        
+
+
+
+
+
+
                                     }
-                                    else if(DateTime.Now.TimeOfDay > new TimeSpan(15, 00, 00) && DateTime.Now.TimeOfDay < new TimeSpan(20, 00, 00))
+                                    else if(DateTime.Now.TimeOfDay > new TimeSpan(15, 00, 00) && DateTime.Now.TimeOfDay <= new TimeSpan(20, 00, 00))
                                     {
                                         ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\15-20.png"));
                                     }
-                                    else if (DateTime.Now.TimeOfDay > new TimeSpan(20, 00, 00) && DateTime.Now.TimeOfDay < new TimeSpan(23, 00, 00))
+                                    else if (DateTime.Now.TimeOfDay > new TimeSpan(20, 00, 00) && DateTime.Now.TimeOfDay <= new TimeSpan(23, 00, 00))
                                     {
                                         ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\20-23.png"));
                                     }
-                                    else if (DateTime.Now.TimeOfDay > new TimeSpan(22, 00, 00) && DateTime.Now.TimeOfDay < new TimeSpan(05, 00, 00))
+                                    else if (DateTime.Now.TimeOfDay > new TimeSpan(22, 00, 00) || DateTime.Now.TimeOfDay <= new TimeSpan(05, 00, 00))
                                     {
                                         ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\23-05.png"));
                                     }
-                                    else if (DateTime.Now.TimeOfDay > new TimeSpan(05, 00, 00) && DateTime.Now.TimeOfDay < new TimeSpan(08, 00, 00))
+                                    else if (DateTime.Now.TimeOfDay > new TimeSpan(05, 00, 00) && DateTime.Now.TimeOfDay <= new TimeSpan(08, 00, 00))
                                     {
                                         ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\08-15.png"));
                                     }
@@ -312,12 +331,69 @@ namespace ScreenSpotter
         {
             DownloadImages();
         }
-
+        int o = 0;
 
         private void button2_Click(object sender, EventArgs e)
         {
-            //   DownloadImages();
-            SelectionDirectory();
+            
+            //SelectionDirectory();
+            switch (o)
+            {
+                case 0:
+                    imageSourceNew = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.10.37.png");
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.10.37.png");
+                    break;
+                case 1:
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.20.36.png");
+                    break;
+                case 2:
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.30.36.png");
+                    break;
+                case 3:
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.10.40.36.png");
+                    break;
+                case 4:
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.00.36.png");
+                    break;
+                //case 5:
+                //    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.10.36.png");
+                //    break;
+                case 6:
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.20.37.png");
+                    break;
+                case 7:
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.30.36.png");
+                    break;
+                case 8:
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.40.36.png");
+                    break;
+                case 9:
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.11.50.36.png");
+                    break;
+                case 10:
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.00.36.png");
+                    break;
+                case 11:
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.10.36.png");
+                    break;
+                //case 12:
+                //    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.30.36.png");
+                //    break;
+                case 13:
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.40.38.png");
+                    break;
+                case 14:
+                    img = Image.FromFile(@"C:\Users\Антон\Music\Roads\Rain\06.06.12.50.37.png");
+                    break;
+            }
+            DownloadImages();
+            o++;
+                
+                
+
+
+
+
 
         }
 
