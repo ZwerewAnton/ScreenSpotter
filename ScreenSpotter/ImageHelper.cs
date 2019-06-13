@@ -46,10 +46,6 @@ namespace ScreenSpotter
                         {
                             for (int j = b; j < b + 45; j = j + 9)
                             {
-                                if (i == a || j == b)
-                                {
-                                    //  bmpForPB.SetPixel(i, j, Color.Red);
-                                }
                                 for (int g = i; g < i + 9; g = g + 3)
                                 {
                                     for (int f = j; f < j + 9; f = f + 3)
@@ -67,8 +63,7 @@ namespace ScreenSpotter
                                             best = bestTemp;
                                             rsum = rsum + best;
                                         }
-
-                                        //bmpForPB.SetPixel(xbest, ybest, Color.Yellow);
+                                        
                                     }
                                 }
                                 squareDist = squareDist + best;
@@ -83,9 +78,7 @@ namespace ScreenSpotter
 
                         }
                         quad[squareCount] = squareDist;
-
-                        //richTextBox1.AppendText("\n" + squareCount.ToString());
-                        //richTextBox1.AppendText("-   " + squareDist.ToString());
+                        
 
                         squareCount++;
                     }
@@ -96,15 +89,8 @@ namespace ScreenSpotter
             if (carOn >= 1)
             {
                 carCount++;
-                //richTextBox1.AppendText("\nМашина замечена в " + carOn.ToString() + " квадратах");
                 logger.Trace("Машина замечена в " + carOn.ToString() + " квадратах");
             }
-
-            //label1.Text = carCount.ToString();
-
-            //pictureBox1.Width = bmpForPB.Width;
-            //pictureBox1.Height = bmpForPB.Height;
-            //pictureBox1.Image = bmpForPB;
 
             return Tuple.Create(carCount, listOfFoundRect);
 
