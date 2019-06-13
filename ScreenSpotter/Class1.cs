@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Drawing;
 using HtmlAgilityPack;
@@ -9,28 +10,22 @@ using System.Net;
 using System.Windows.Forms;
 using System.IO;
 using System.Data;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace ScreenSpotter
 {
     class Class1
     {
-
         CookieContainer container = new CookieContainer();
 
-        public void ImageProcessing(System.Drawing.Image img)
-        {
-            for(int i = 1; i <= img.Width; i++)
-            {
-
-            }
-        }
-
-        public static System.Drawing.Image cropImage(System.Drawing.Image img, int[] rectCoor)
+        public static Image cropImage(Image img, int[] rectCoor)
         {
             Rectangle cropArea = new Rectangle(rectCoor[0], rectCoor[1], rectCoor[2], rectCoor[3]);
             Bitmap bmpImage = new Bitmap(img);
             return bmpImage.Clone(cropArea, bmpImage.PixelFormat);
         }
+
         public void Login(DataTable dtURI)
         {
             foreach (DataRow row in dtURI.Rows)
@@ -59,20 +54,32 @@ namespace ScreenSpotter
                     request.ContentType = "application/x-www-form-urlencoded";
                     request.ContentLength = requestData.Length;
 
-                    using (Stream S = request.GetRequestStream())
-                        S.Write(requestData, 0, requestData.Length);
-
-                    using (var response = (HttpWebResponse)request.GetResponse())
+                    Stream stream = Stream.Null;
+                    try
                     {
+                        stream = request.GetRequestStream();
+                        stream.Write(requestData, 0, requestData.Length);
+                        var response = (HttpWebResponse)request.GetResponse();
                         var newPageCode = new StreamReader(response.GetResponseStream()).ReadToEnd();
-                         //response.GetResponseStream();
+                    }
+                    catch (Exception)
+                    {
+                    }
+                    finally
+                    {
+                        if (stream != null)
+                            ((IDisposable)stream).Dispose();
                     }
                 }
             }
         }
 
-        public  void Parser(DataTable dtURI)
+        public DataTable Parser(DataTable dtURI)
         {
+
+            DataTable dtStateOfRoad = new DataTable();
+            dtStateOfRoad.Columns.Add("Id", typeof(string));
+            dtStateOfRoad.Columns.Add("StateOfRoad", typeof(string));
             foreach (DataRow row in dtURI.Rows)
             {
                 if (row["Id"].ToString() == "1")
@@ -89,24 +96,42 @@ namespace ScreenSpotter
                 }
                 else if (row["Id"].ToString() == "4")
                 {
-                    HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(row["UriMeteo"].ToString());
-                    webRequest.Method = "GET";
-                    webRequest.CookieContainer = container;
-                    string PageText;
-                    using (var response = webRequest.GetResponse().GetResponseStream())
+                    try
                     {
-                        PageText = (new StreamReader(response, Encoding.UTF8)).ReadToEnd();
+                        
+                        HttpWebRequest webRequest = (HttpWebRequest)WebRequest.Create(row["UriMeteo"].ToString());
+                        webRequest.Method = "GET";
+                        webRequest.CookieContainer = container;
+                        string pageText;
+                        using (var response = webRequest.GetResponse().GetResponseStream())
+                        {
+                            pageText = (new StreamReader(response, Encoding.UTF8)).ReadToEnd();
+                        }
+
+                        XDocument xdoc = XDocument.Parse(pageText);
+
+                        foreach (XElement rowElement in xdoc.Element("data").Elements("row"))
+                        {
+                            DataRow drStateOfRoad = dtStateOfRoad.NewRow();
+
+                            XElement idElement = rowElement.Element("id");
+                            XElement stateElement = rowElement.Element("f16");
+
+                            if (idElement != null && stateElement != null)
+                            {
+                                drStateOfRoad["Id"] = idElement.Value;
+                                drStateOfRoad["StateOfRoad"] = Regex.Match(stateElement.Value, @"\>(.+?)\<").Groups[1].Value;
+                                dtStateOfRoad.Rows.Add(drStateOfRoad);
+                            }
+                        }
                     }
-
-                    HtmlAgilityPack.HtmlDocument doc = new HtmlAgilityPack.HtmlDocument();
-
-                    doc.LoadHtml(PageText);
-                    foreach (HtmlNode n in doc.DocumentNode.SelectNodes("//row//id"))
+                    catch (Exception)
                     {
-                        //richTextBox1.AppendText("\n" + "\n" + n.InnerText);
+
                     }
                 }
             }
+            return dtStateOfRoad;
         }
     }
 }

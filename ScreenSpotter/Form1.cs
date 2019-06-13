@@ -13,6 +13,7 @@ using System.Data.SQLite;
 using System.Runtime.InteropServices;
 using NLog;
 using HtmlAgilityPack;
+using System.Timers;
 
 namespace ScreenSpotter
 {
@@ -20,6 +21,8 @@ namespace ScreenSpotter
     public partial class Form1 : Form
     {
         
+
+
         Class1 cl = new Class1();
         string projectDirectory = Directory.GetParent(Environment.CurrentDirectory).Parent.FullName;
         Logger logger = LogManager.GetCurrentClassLogger();
@@ -72,14 +75,16 @@ namespace ScreenSpotter
         private void Form1_Load(object sender, EventArgs e)
         {
             
+
+
             if (Properties.Settings.Default.imageDirectory == "" || !Directory.Exists(Properties.Settings.Default.imageDirectory))
             {
                 SelectionDirectory();
             }
 
             Database();
-           // imageSourceNew = Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\06.07.10.24.31.png");
-            //DownloadImages();
+            imageSourceNew = Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\06.07.10.24.31.png");
+            DownloadImages();
             button1.Text = "Таймер запущен!";
             button1.BackColor = Color.Green;
             timer1.Interval = 600000;
@@ -152,33 +157,34 @@ namespace ScreenSpotter
                     {
                         int squareDist = 0;
                         best = 0;
-                        for (int i = a; i < a + 39; i = i + 7)
+                        for (int i = a; i < a + 45; i = i + 9)
                         {
-                            for (int j = b; j < b + 39; j = j + 7)
+                            for (int j = b; j < b + 45; j = j + 9)
                             {
                                 if (i == a || j == b)
                                 {
-                                    bmpForPB.SetPixel(i, j, Color.Red);
+                                  //  bmpForPB.SetPixel(i, j, Color.Red);
                                 }
-                                for (int g = i; g <= i + 6; g = g + 3)
+                                for (int g = i; g < i + 9; g = g + 3)
                                 {
-                                    for (int f = j; f <= j + 6; f = f + 3)
+                                    for (int f = j; f < j + 9; f = f + 3)
                                     {
+                                        bmpForPB.SetPixel(i, j, Color.Red);
                                         int xbest = 0, ybest = 0;
                                         
-                                            bestTemp = Math.Abs(bmpSource.GetPixel(i + 3, j + 3).R - bmp.GetPixel(g, f).R) +
-                                                            Math.Abs(bmpSource.GetPixel(i + 3, j + 3).G - bmp.GetPixel(g, f).G) +
-                                                            Math.Abs(bmpSource.GetPixel(i + 3, j + 3).B - bmp.GetPixel(g, f).B);
-                                            if ((bestTemp <= best) || ((g == i) && (f == j)))
-                                            {
-                                                xbest = g;
-                                                ybest = f;
+                                        bestTemp = Math.Abs(bmpSource.GetPixel(i + 3, j + 3).R - bmp.GetPixel(g, f).R) +
+                                                        Math.Abs(bmpSource.GetPixel(i + 3, j + 3).G - bmp.GetPixel(g, f).G) +
+                                                        Math.Abs(bmpSource.GetPixel(i + 3, j + 3).B - bmp.GetPixel(g, f).B);
+                                        if ((bestTemp <= best) || ((g == i) && (f == j)))
+                                        {
+                                            xbest = g;
+                                            ybest = f;
 
-                                                best = bestTemp;
-                                                rsum = rsum + best;
-                                            }
+                                            best = bestTemp;
+                                            rsum = rsum + best;
+                                        }
                                         
-                                        bmpForPB.SetPixel(xbest, ybest, Color.Yellow);
+                                        //bmpForPB.SetPixel(xbest, ybest, Color.Yellow);
                                     }
                                 }
                                 squareDist = squareDist + best;
@@ -233,7 +239,9 @@ namespace ScreenSpotter
                 richTextBox1.AppendText("\nДиректория для изображений задана неверно!");
                 return;
             }
-                
+
+            cl.Login(dtURI);
+            DataTable dtStateOfRoad = cl.Parser(dtURI);
 
             int i = 1;
             foreach (DataRow row in dtAll.Rows)
@@ -243,6 +251,10 @@ namespace ScreenSpotter
                 //richTextBox1.AppendText(id1.ToString());
                 if (id1 == 157)
                 {
+                    string searchExpression = "Id = " + row["PhotoId"].ToString();
+                    DataRow rowsForId = dtStateOfRoad.Select(searchExpression)[0];
+                    string state = rowsForId["StateOfRoad"].ToString();
+
                     string dir = Properties.Settings.Default.imageDirectory + @"\Data\" + row["Subject"].ToString();
                     if (!Directory.Exists(dir))
                     {
@@ -267,39 +279,68 @@ namespace ScreenSpotter
                             {
                                 try
                                 {
-                                    //img = Image.FromStream(stream);
+                                    img = Image.FromStream(stream);
                                     string x = row["X"].ToString();
                                     string y = row["Y"].ToString();
                                     string width = row["Width"].ToString();
                                     string height = row["Height"].ToString();
                                     int[] rectCoor = { Convert.ToInt32(x), Convert.ToInt32(y), Convert.ToInt32(width), Convert.ToInt32(height) };
-                                    //img = Class1.cropImage(img, rectCoor);
+                                    img = Class1.cropImage(img, rectCoor);
                                     imgForPB = img;
                                     
                                     if(DateTime.Now.TimeOfDay > new TimeSpan(08, 00, 00) && DateTime.Now.TimeOfDay <= new TimeSpan(15, 00, 00))
                                     {
-                                        ImageProcessing(img, imageSourceNew);
+                                        if(state == "Сухая")
+                                        {
+                                            ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\08-15.png"));
 
+                                        }
+                                        else if (state == "Мокрая")
+                                        {
 
-                                        
+                                        }
+                                        else if (state == "Влажная")
+                                        {
 
-
-
-
-
-
+                                        }
                                     }
                                     else if(DateTime.Now.TimeOfDay > new TimeSpan(15, 00, 00) && DateTime.Now.TimeOfDay <= new TimeSpan(20, 00, 00))
                                     {
-                                        ImageProcessing(img, imageSourceNew);
-                                        //ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\15-20.png"));
+                                        //ImageProcessing(img, imageSourceNew);
+                                        ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\15-20.png"));
                                     }
                                     else if (DateTime.Now.TimeOfDay > new TimeSpan(20, 00, 00) && DateTime.Now.TimeOfDay <= new TimeSpan(23, 00, 00))
                                     {
+                                        if (state == "Сухая")
+                                        {
+                                            ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\20-23.png"));
+
+                                        }
+                                        else if (state == "Мокрая")
+                                        {
+
+                                        }
+                                        else if (state == "Влажная")
+                                        {
+
+                                        }
                                         ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\20-23.png"));
                                     }
-                                    else if (DateTime.Now.TimeOfDay > new TimeSpan(22, 00, 00) || DateTime.Now.TimeOfDay <= new TimeSpan(05, 00, 00))
+                                    else if (DateTime.Now.TimeOfDay > new TimeSpan(23, 00, 00) || DateTime.Now.TimeOfDay <= new TimeSpan(05, 00, 00))
                                     {
+                                        if (state == "Сухая")
+                                        {
+                                            ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\23-05.png"));
+
+                                        }
+                                        else if (state == "Мокрая")
+                                        {
+
+                                        }
+                                        else if (state == "Влажная")
+                                        {
+
+                                        }
                                         ImageProcessing(img, Image.FromFile(@"C:\Users\Антон\source\repos\ScreenSpotter\ScreenSpotter\Data\Алтайский край\Малиновский\с.Малиновский\23-05.png"));
                                     }
                                     else if (DateTime.Now.TimeOfDay > new TimeSpan(05, 00, 00) && DateTime.Now.TimeOfDay <= new TimeSpan(08, 00, 00))
@@ -351,8 +392,13 @@ namespace ScreenSpotter
         private void button2_Click(object sender, EventArgs e)
         {
 
-            cl.Login(dtURI);
-            cl.Parser(dtURI);
+            //cl.Login(dtURI);
+            //DataTable dtStateOfRoad = cl.Parser(dtURI);
+            //foreach (DataRow row in dtStateOfRoad.Rows)
+            //{
+            //    string l = row["Id"].ToString();
+            //    richTextBox1.AppendText("\n" + l + row["StateOfRoad"].ToString());
+            //}
 
             //SelectionDirectory();
             //switch (o)
